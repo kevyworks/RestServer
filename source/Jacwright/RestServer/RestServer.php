@@ -276,7 +276,9 @@ class RestServer {
 			if (function_exists('apc_delete')) {
 				apc_delete('urlMap');
 			} else {
-				@unlink($this->cacheDir . '/urlMap.cache');
+				if (file_exists($this->cacheDir . '/urlMap.cache')) {
+					unlink($this->cacheDir . '/urlMap.cache');
+				}
 			}
 		}
 	}
