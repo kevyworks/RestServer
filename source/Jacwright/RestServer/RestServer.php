@@ -150,9 +150,7 @@ class RestServer {
 				} else {
 					$result = call_user_func_array(array($obj, $method), $params);
 
-					if ($result !== null) {
-						$this->sendData($result);
-					}
+					$this->sendData($result);
 				}
 			} catch (RestException $e) {
 				$this->handleError($e->getCode(), $e->getMessage());
@@ -434,6 +432,10 @@ class RestServer {
 	}
 
 	public function getFormat() {
+		if ($this->format !== null) {
+			return $this->format;
+		}
+
 		$format = RestFormat::PLAIN;
 		$accept_mod = null;
 
@@ -484,7 +486,11 @@ class RestServer {
 			$this->corsHeaders();
 		}
 
-		if ($this->format == RestFormat::XML) {
+		if ($this->format == RestFormat::HTML) {
+			if ($data !== null) {
+				echo $data;
+			}
+		} else if ($this->format == RestFormat::XML) {
 			if (is_object($data) && method_exists($data, '__keepOut')) {
 				$data = clone $data;
 				foreach ($data->__keepOut() as $prop) {
