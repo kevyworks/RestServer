@@ -53,6 +53,7 @@ class RestServer {
 	public $rootPath;
 	public $jsonAssoc = false;
 	public $authHandler = null;
+	public $defaultOutputFormat = RestFormat::JSON;
 
 	public $useCors = false;
 	public $allowedOrigin = '*';
@@ -132,11 +133,16 @@ class RestServer {
 			$this->sendData($this->options());
 		}
 
-		list($obj, $method, $params, $this->params, $noAuth) = $this->findUrl();
+		list($obj, $method, $params, $this->params, $noAuth, $format) = $this->findUrl();
 
 		if ($obj) {
 			if (is_string($obj) && !($obj = $this->instantiateClass($obj))) {
 				throw new Exception("Class $obj does not exist");
+			}
+
+			//method format overrides any passed in format
+			if ($format) {
+				$this->format = $format;
 			}
 
 			$obj->server = $this;
@@ -377,9 +383,20 @@ class RestServer {
 						$args[$param->getName()] = $param->getPosition();
 					}
 
+					//check docs for @format for output format of method
+					$format = null;
+					if (preg_match_all('/@format[ \t]+\/?(\S*)/s', $doc, $matches, PREG_SET_ORDER)) {
+						foreach ($matches as $match) {
+							if (isset(RestFormat::$formats[$match[1]])) {
+								$format = RestFormat::$formats[$match[1]];
+							}
+						}
+					}
+
 					$call[] = $args;
 					$call[] = null;
 					$call[] = $noAuth;
+					$call[] = $format;
 
 					$this->map[$httpMethod][$url] = $call;
 				}
@@ -436,7 +453,7 @@ class RestServer {
 			return $this->format;
 		}
 
-		$format = RestFormat::PLAIN;
+		$format = $this->defaultOutputFormat;
 		$accept_mod = null;
 
 		if (isset($_SERVER["HTTP_ACCEPT"])) {
