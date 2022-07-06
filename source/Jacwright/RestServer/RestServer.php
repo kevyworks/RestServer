@@ -213,7 +213,11 @@ class RestServer {
 			if (isset($reflection)) {
 				if ($reflection->hasMethod($method)) {
 					$obj = is_string($class) ? new $class() : $class;
-					$obj->$method();
+					$response = $obj->$method();
+					if ($response) {
+						$this->setStatus($statusCode);
+						$this->sendData($response);
+					}
 					return;
 				}
 			}
