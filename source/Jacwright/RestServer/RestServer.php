@@ -393,6 +393,8 @@ class RestServer {
 						foreach ($matches as $match) {
 							if (isset(RestFormat::$formats[$match[1]])) {
 								$format = RestFormat::$formats[$match[1]];
+							} else {
+								$format = $match[1];
 							}
 						}
 					}
@@ -501,7 +503,9 @@ class RestServer {
 	public function sendData($data) {
 		header("Cache-Control: no-cache, must-revalidate");
 		header("Expires: 0");
-		header('Content-Type: ' . $this->format);
+		if ($this->format && $this->format !== "false") {
+			header('Content-Type: ' . $this->format);
+		}
 
 		if ($this->useCors) {
 			$this->corsHeaders();
