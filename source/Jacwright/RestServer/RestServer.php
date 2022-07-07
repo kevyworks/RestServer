@@ -501,11 +501,13 @@ class RestServer {
 
 
 	public function sendData($data) {
+		if ($data == null && (!$this->format || $this->format == 'false')) {
+			return;
+		}
+		
 		header("Cache-Control: no-cache, must-revalidate");
 		header("Expires: 0");
-		if ($this->format && $this->format !== "false") {
-			header('Content-Type: ' . $this->format);
-		}
+		header('Content-Type: ' . $this->format);
 
 		if ($this->useCors) {
 			$this->corsHeaders();
